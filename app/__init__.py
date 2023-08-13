@@ -7,21 +7,28 @@ import argon2
 import flask
 
 
+TaskId = typing.NewType('TaskId', int)
+UserId = typing.NewType('UserId', int)
+ProjectId = typing.NewType('ProjectId', int)
+MembershipId = typing.NewType('MembershipId', int)
+
+
 @dataclasses.dataclass(slots=True)
 class Task:
-    """A single task entry in a task list."""
-    id: int
+    """A single task entry in a project."""
+    id: TaskId
     title: str
-    description: str = ''
+    description: typing.Optional[str] = None
     due: typing.Optional[datetime.datetime] = None
-    subtasks: list[typing.Self] = dataclasses.field(default_factory=list)
+    supertask: typing.Optional[typing.Self] = None
+    subtasks: list[typing.Self] = dataclasses.field(default_factory=list, init=False)
     is_done: bool = dataclasses.field(default=False, init=False)
 
 
 @dataclasses.dataclass(slots=True)
-class TaskList(list):
-    """A task list, contains instances of `Task`."""
-    id: int
+class Project(list):
+    """Project is a container of tasks."""
+    id: ProjectId
     title: str
 
     def remove_done(self) -> None:
@@ -32,8 +39,9 @@ class TaskList(list):
 @dataclasses.dataclass(slots=True)
 class User:
     """Registered user of the app."""
-    id: int
+    id: UserId
     name: str
+    email: str
     password_hash: str
 
     _hasher: typing.ClassVar[argon2.PasswordHasher] = argon2.PasswordHasher()
@@ -49,23 +57,23 @@ class User:
 
 
 class AccessLevel(enum.IntEnum):
-    """Access levels of a user to a task list.
+    """Access levels of a user to a project.
 
     Constants that describe the access level (and corresponding
-    permissions) of a user in a task list. Relevent in shared lists to
+    permissions) of a user in a project. Relevent in shared lists to
     limit permissions of invited users."""
 
-    READ = enum.auto()  # this access level grants permission to read the contents of a task list
-    EDIT = enum.auto()  # edit task list contents, that is add and remove tasks, change task status, edit task details
-    MANAGE = enum.auto()  # manage a task list itself, like rename, delete and manage the team
+    READ = enum.auto()  # this access level grants permission to read the contents of a project
+    EDIT = enum.auto()  # edit project contents, that is add and remove tasks, change task status, edit task details
+    MANAGE = enum.auto()  # manage a project itself, like rename, delete and manage the team
 
 
 @dataclasses.dataclass(slots=True)
 class Membership:
-    """Representation of a user's membership in some task list team."""
-    id: int
-    user: User
-    task_list: TaskList
+    """Representation of a user's membership in some project team."""
+    id: MembershipId
+    user: UserId
+    project: ProjectId
     access_level: AccessLevel
 
 
