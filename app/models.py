@@ -129,37 +129,11 @@ class Membership(Base):
         return AccessLevel(self.access_level_int)
 
 
-engine = sqlalchemy.create_engine('sqlite:///:memory:')
-Base.metadata.create_all(engine)
-session = orm.Session(engine)
+class Database:
 
+    def __init__(self, url: str):
+        self.engine = sqlalchemy.create_engine(url)
+        Base.metadata.create_all(self.engine)
 
-if __name__ == '__main__':
-    test = True
-else:
-    test = False
-
-
-if test:
-    mike = User.create_dummy("Mike")
-    kim = User.create_dummy("Kim")
-    summer = Project(title="Summer Project")
-    winter = Project(title="Winter Project")
-    membership = Membership(user=mike, project=summer)
-    alpha = Task(title="alpha", description="This is a very good task.", project=summer)
-    bravo = Task(title="bravo", project=summer)
-    charlie = Task(title="charlie", project=summer)
-    one = Task(title="one", project=summer, supertask=bravo)
-    two = Task(title="two", project=summer, supertask=bravo)
-    session.add_all([
-        mike,
-        kim,
-        summer,
-        winter,
-        alpha,
-        bravo,
-        charlie,
-        one,
-        two
-    ])
-    session.flush()
+    def new_session(self):
+        return orm.Session(self.engine)
