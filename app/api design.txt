@@ -1,0 +1,56 @@
+GET task(id: int)
+
+POST task(
+    project_id: int,
+    supertask_id: int| None = None,
+    title: str | None = None,
+    description: str | None = None,
+    due_timestamp: str | None = None,
+)
+
+PATCH task(
+    id: int,
+    title: str | None = None,
+    description: str | None = None,
+    due_timestamp: str | None = None,
+    is_done: bool | None = None
+)
+
+DELETE task(id: int)
+
+GET project(id: int)
+
+POST project(title: str)
+
+PATCH project(
+    id: int,
+    title: str | None = None
+)
+
+DELETE project(id: int)
+
+GET user(id: int)
+
+POST user(
+    name: str,
+    email: str,
+    cleartext_password: str
+)
+
+PATCH user(
+    id: int,
+    email: str | None = None,
+    password: str | None = None
+)
+
+DELETE user(id: int)
+
+PUT team(
+    project_id: int,
+    members: list  // [{'user_id': <int>, 'access_level_int': <int>}, ...]
+)
+
+POST leave(
+    user_id: int,
+    project_id: int
+)
