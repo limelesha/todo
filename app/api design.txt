@@ -1,65 +1,171 @@
-GET task(id: int)
+## Task [/task/{task_id}]
 
-POST task(
-    project_id: int,
-    title: str,
-    supertask_id: int | None = None,
-    description: str | None = None,
-    due_timestamp: str | None = None,
-)
++ Parameters
+    + task_id (required, number) - ID of a task in the form of an integer
 
-PATCH task(
-    id: int,
-    title: str | None = None,
-    description: str | None = None,
-    due_timestamp: str | None = None,
-    is_done: bool | None = None
-)
 
-DELETE task(id: int)
+### View Task Details [GET]
 
-GET project(id: int)  // info about a project with a list of tasks
++ Response 200 OK (application/json)
 
-POST project(
-    title: str,
-    defalt_access_level_int: int = 1  // defaults to READER
-)
+```json
+{
+    "title": "Bravo",
+    "description": "An excellent task",
+    "due_timestamp": null,
+    "is_done": false,
+    "subtasks": []
+}
+```
 
-PATCH project(
-    id: int,
-    title: str | None = None
-    defalt_access_level_int: int | None = None,
-)
 
-DELETE project(id: int)
+### Edit Task Details [PATCH]
 
-GET user(id: int)  // info about a user with a list of project they have access to
++ Request (application/json)
+    + title (optional, string) - new title of a task
+    + description (optional, string) - new description of a task
+    + due_timestamp (optional, string) - new deadline of a task
+    + is_done (optional, bool) - new done status of a task
 
-POST user(
-    name: str,
-    email: str,
-    cleartext_password: str
-)
++ Response 200 OK
 
-PATCH user(
-    id: int,
-    email: str | None = None,
-    password: str | None = None
-)
 
-DELETE user(id: int)
+### Delete Task [DELETE]
 
-POST invite(  // invite new members which are granted project's default access level
-    project_id: int,
-    members: list  // list of invited members' IDs
-)
++ Response 200 OK
 
-POST kick(
-    project_id: int,
-    members: list  // list of members to remove from project's team
-)
 
-POST leave(
-    user_id: int,
-    project_id: int
-)
+
+## Project [/project/{project_id}]
+
++ Parameters
+    + project_id (number, required) - ID of a project in the form of an integer
+
+
+### View Project Details with a List of Tasks [GET]
+
++ Response 200 OK
+
+```json
+{
+    "title": "Summer Project",
+    "default_access_level_int": 1,
+    "tasks": [
+        {
+            "title": "Bravo",
+            "description": "An excellent task",
+            "due_timestamp": null,
+            "is_done": false,
+            "subtasks": []
+        }
+    ]
+}
+```
+
+
+### Edit Project Details [PATCH]
+
++ Request
+    + title (optional, string) - new title of a project
+    + default_access_level_int (optional, string) - new default access level of a project
+
++ Response 200 OK
+
+
+### Delete Project [DELETE]
+
++ Response 200 OK
+
+
+
+## User [/user/{user_id}]
+
++ Request
+    + user_id (required, number) - ID of a user in the form of an integer
+
+
+### View User Details with a List of Projects They Have Access To [GET]
+
++ Response 200 OK (application/json)
+
+```json
+{
+    "name": "John",
+    "project_ids": [123, 456]
+}
+```
+
+
+### Edit User Details [PATCH]
+
++ Request
+    + email: (optional, string) - new email of a user
+    + cleartext_password (optional, string) - new cleartext password of a user
+
++ Response 200 OK
+
+### Delete User [DELETE]
+
++ Response 200 OK
+
+
+
+## Invite Members to a Team [POST /invite/{project_id}]
+
+New members are granted project's default access level
+
++ Parameters
+    + project_id (required, number) - ID of a project, where to invite new members
+
++ Request
+    + members (required, list) - list of members to invite
+
++ Response 200 OK
+
+
+## Remove members from a team [POST /kick/{project_id}]
+
++ Parameters
+    + project_id (required, number) - ID of a project in the form of an integer
+
++ Request
+    + members: (required, list) - list of members to remove from project's team
+
++ Response 200 OK
+
+
+## Leave Project [POST /leave/{project_id}]
+
++ Parameters
+    + project_id (required, number) - ID of a project to leave in the form of an integer
+
++ Response 200 OK
+
+
+## Create Task [POST /task/]
+
++ Request
+    + project_id (required, number) - ID of a project to create a new task in
+    + title (required, string) - title of a new task
+    + supertask_id (optional, number) - ID of a supertask of a new task, if task is a subtask
+    + description (optional, string) - description of a new task, if present
+    + due_timestamp (optional, string) - deadline of a new task, if present
+
++ Response 201 Created
+
+## Create Project [POST /project/]
+
++ Request
+    + title (required, string) - title of a new project
+    + defalt_access_level_int (optional, number) - an integer representing a default access level for a project, defaults to 1 (READER)
+
++ Response 201 Created
+
+## Create User [POST /user/]
+
++ Request
+    + name (required, string) - name of a new user
+    + email (required, string) - email of a new user
+    + cleartext_password (required, string) - cleartext password of a new user
+
++ Response 201 Created
