@@ -2,8 +2,8 @@ GET task(id: int)
 
 POST task(
     project_id: int,
-    supertask_id: int| None = None,
-    title: str | None = None,
+    title: str,
+    supertask_id: int | None = None,
     description: str | None = None,
     due_timestamp: str | None = None,
 )
@@ -18,18 +18,22 @@ PATCH task(
 
 DELETE task(id: int)
 
-GET project(id: int)
+GET project(id: int)  // info about a project with a list of tasks
 
-POST project(title: str)
+POST project(
+    title: str,
+    defalt_access_level_int: int = 1  // defaults to READER
+)
 
 PATCH project(
     id: int,
     title: str | None = None
+    defalt_access_level_int: int | None = None,
 )
 
 DELETE project(id: int)
 
-GET user(id: int)
+GET user(id: int)  // info about a user with a list of project they have access to
 
 POST user(
     name: str,
@@ -45,9 +49,14 @@ PATCH user(
 
 DELETE user(id: int)
 
-PUT team(
+POST invite(  // invite new members which are granted project's default access level
     project_id: int,
-    members: list  // [{'user_id': <int>, 'access_level_int': <int>}, ...]
+    members: list  // list of invited members' IDs
+)
+
+POST kick(
+    project_id: int,
+    members: list  // list of members to remove from project's team
 )
 
 POST leave(
