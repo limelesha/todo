@@ -8,6 +8,18 @@ from sqlalchemy import orm
 from sqlalchemy.orm import Mapped
 
 
+class AccessLevel(enum.IntEnum):
+    """Access levels of a user to a project.
+
+    Constants that describe the access level (and corresponding
+    permissions) of a user in a project. Relevent in shared lists to
+    limit permissions of invited users."""
+
+    READER = enum.auto()  # this access level grants permission to read the contents of a project
+    EDITOR = enum.auto()  # edit project contents, that is add and remove tasks, change task status, edit task details
+    MANAGER = enum.auto()  # manage a project itself, like rename, delete and manage the team
+
+
 class Base(orm.DeclarativeBase):
     pass
 
@@ -24,7 +36,7 @@ class Task(Base):
     supertask_id: Mapped[int | None] = orm.mapped_column(sqlalchemy.ForeignKey("task.id"))
     is_done: Mapped[bool] = orm.mapped_column(default=False)
 
-    project: Mapped["Project"] = orm.relationship(back_populates="content")
+    project: Mapped["Project"] = orm.relationship(back_populates="tasks")
     subtasks: Mapped[list["Task"]] = orm.relationship(back_populates="supertask")
     supertask: Mapped["Task"] = orm.relationship(back_populates="subtasks", remote_side=[id])
 
@@ -37,6 +49,14 @@ class Task(Base):
                f", supertask_id={self.supertask_id!r}"\
                f", is_done={self.is_done!r})"
 
+    def as_dict(self) -> dict:
+        return {
+            "title": self.title,
+            "description": self.description,
+            "due_timestamp": self.due_timestamp,
+            "subtasks": self.subtasks
+        }
+
 
 class Project(Base):
     """Project is a container of tasks."""
@@ -44,13 +64,21 @@ class Project(Base):
 
     id: Mapped[int] = orm.mapped_column(primary_key=True)
     title: Mapped[str] = orm.mapped_column()
+    default_access_level_int: Mapped[int] = orm.mapped_column(default=AccessLevel.READER.real)
 
-    content: Mapped[list["Task"]] = orm.relationship(back_populates="project")
-    team: Mapped[list["Membership"]] = orm.relationship(back_populates="project")
+    tasks: Mapped[list["Task"]] = orm.relationship(back_populates="project")
+    team: Mapped[set["Membership"]] = orm.relationship(back_populates="project")
 
     def __repr__(self):
         return f"Project(id={self.id!r}"\
                f", title={self.title!r})"
+
+    def as_dict(self) -> dict:
+        return {
+            "title": self.title,
+            "default_access_level_int": self.default_access_level_int,
+            "tasks": [task.as_dict for task in self.tasks]
+        }
 
     # def remove_done(self) -> None:
     #     """Remove all tasks marked as done."""
@@ -93,17 +121,11 @@ class User(Base):
         passwd = name.lower() + '123'
         return cls.create_with_cleartext_password(name=name, email=email, cleartext_password=passwd)
 
-
-class AccessLevel(enum.IntEnum):
-    """Access levels of a user to a project.
-
-    Constants that describe the access level (and corresponding
-    permissions) of a user in a project. Relevent in shared lists to
-    limit permissions of invited users."""
-
-    READER = enum.auto()  # this access level grants permission to read the contents of a project
-    EDITOR = enum.auto()  # edit project contents, that is add and remove tasks, change task status, edit task details
-    MANAGER = enum.auto()  # manage a project itself, like rename, delete and manage the team
+    def as_dict(self):
+        return {
+            "name": self.name,
+            "projects": [project.id for project in self.projects]
+        }
 
 
 class Membership(Base):
